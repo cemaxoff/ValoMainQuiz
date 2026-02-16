@@ -20,22 +20,19 @@
   box-sizing: border-box;
 }
 
-#logo img {
-  border-radius: 12px; /* coins arrondis */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-
+/* Logo fixe en haut à gauche */
 #logo {
-  position: absolute;
-  top: 12px;   /* distance du haut */
-  left: 12px;  /* distance de la gauche */
-  z-index: 1000; /* pour qu’il soit au-dessus des autres éléments */
+  position: fixed;      /* reste à l’écran même au scroll */
+  top: 12px;
+  left: 12px;
+  z-index: 1000;        /* au-dessus du quiz */
 }
 
 #logo img {
   display: block;
-  width: 80px; /* ajuste la taille du logo */
+  width: 80px;          /* taille desktop */
   height: auto;
+  transition: width 0.2s ease;
 }
 
 /* Version mobile : réduit le logo si l’écran est petit */
@@ -238,12 +235,12 @@
 
 </head>
 <body>
-  <header>
-    <div id="logo" style="text-align:center; margin-bottom:20px;">
-      <img src="https://cemaxoff.github.io/ValoMainQuiz/ValoMainQuiz/images/logo.png" alt="Logo ValoMainQuiz" width="120">
-    </div>
 
-  </header>
+<div id="logo" style="text-align:center; margin-bottom:20px;">
+  <img src="https://cemaxoff.github.io/ValoMainQuiz/images/logo.png" alt="Logo ValoMainQuiz" width="120">
+</div>
+
+
 
 <!-- PUB GAUCHE -->
 <div class="ad-left">
@@ -709,5 +706,3 @@ answers:[
 
 </body>
 </html>
-
-
