@@ -193,6 +193,18 @@
   animation: fadeSlide 0.35s ease;
 }
 
+.agent-result {
+  text-align: center;
+}
+
+.agent-result img {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
 @keyframes fadeSlide {
   from {
     opacity: 0;
@@ -440,7 +452,17 @@ function showAgentResult(){
 
   let winner = Object.keys(scores).reduce((a,b)=> scores[a] > scores[b] ? a : b);
 
-  questionEl.innerHTML = `<span class="result-controller">${winner.toUpperCase()}</span>`;
+  // chemin vers ton dossier d'images
+  const imgPath = `https://cemaxoff.github.io/ValoMainQuiz/images/agents/${winner}.png`;
+
+
+  questionEl.innerHTML = `
+    <div class="agent-result">
+      <img src="${imgPath}" alt="${winner}">
+      <h2 class="result-controller">${winner.toUpperCase()}</h2>
+    </div>
+  `;
+
   progressEl.textContent="";
   progressFill.style.width="100%";
 
