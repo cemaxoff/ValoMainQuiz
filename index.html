@@ -426,7 +426,11 @@ function handleAnswer(score) {
 
 function showRoleResult(){
 
-  let winner = Object.keys(scores).reduce((a,b)=> scores[a] > scores[b] ? a : b);
+  let max = Math.max(...Object.values(scores));
+  let winners = Object.keys(scores).filter(k => scores[k] === max);
+  let winner = winners[0]; // ou random si tu veux
+
+  selectedRole = winner; // ✅ AJOUT IMPORTANT
 
   let text = "";
   if(winner==="controller") text="Controller inné !";
@@ -450,7 +454,9 @@ function showRoleResult(){
 
 function showAgentResult(){
 
-  let winner = Object.keys(scores).reduce((a,b)=> scores[a] > scores[b] ? a : b);
+  let max = Math.max(...Object.values(scores));
+  let winners = Object.keys(scores).filter(k => scores[k] === max);
+  let winner = winners[0]; // ou random si tu veux
 
   // chemin vers ton dossier d'images
   const imgPath = `https://cemaxoff.github.io/ValoMainQuiz/images/agents/${winner}.png`;
