@@ -242,6 +242,29 @@
   transition: width 0.6s ease;
 }
 
+/* Bouton Crosshair : blanc, en haut à droite de la page (visible seulement sur l'accueil) */
+.crosshair-btn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  width: auto;
+  margin: 0;
+  padding: 10px 18px;
+  font-size: 15px;
+  background: #ffffff;
+  color: #111111;
+}
+
+@media (max-width: 500px) {
+  .crosshair-btn {
+    top: 10px;
+    right: 10px;
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+}
+
 </style>
 
 <link rel="icon" type="image/jpeg" href="https://cemaxoff.github.io/ValoMainQuiz/images/favicon.png">
@@ -253,6 +276,9 @@
 <div id="logo" style="text-align:center; margin-bottom:20px;">
   <img src="https://cemaxoff.github.io/ValoMainQuiz/images/logo.png" alt="Logo ValoMainQuiz" width="120">
 </div>
+
+<!-- BOUTON CROSSHAIR (en haut à droite de la page, hors de la boîte du quiz) -->
+<button id="crosshairBtn" class="crosshair-btn" onclick="window.location.href='crosshair.html'">Crosshair</button>
 
 
 
@@ -338,6 +364,7 @@ const progressFill = document.getElementById("progressFill");
 
 function goToRole() {
   document.getElementById("startScreen").style.display = "none";
+  document.getElementById("crosshairBtn").style.display = "none";
   document.getElementById("roleSelect").style.display = "block";
 }
 
@@ -481,6 +508,7 @@ function showAgentResult(){
 function restartQuiz(){
   document.getElementById("quiz").style.display="none";
   document.getElementById("startScreen").style.display="block";
+  document.getElementById("crosshairBtn").style.display="";
   progressFill.style.width="0%";
 }
 
