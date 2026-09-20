@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crosshair – ValoMainQuiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="https://cemaxoff.github.io/ValoMainQuiz/images/favicon.png">
+<style>
+  :root {
+    --bg: #111111;
+    --panel: #1a1a1a;
+    --ink: #ECE7E1;
+    --muted: #9b968f;
+    --line: #2d2d2d;
+    --accent: #FF4655;
+    --accent-ink: #111111;
+    --field: #111111;
+    --ok: #5fd39a;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 16px 16px 48px; }
+  .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .top img { display: block; width: 72px; height: auto; }
+  @media (max-width: 500px) { .top img { width: 56px; } }
+  a.back {
+    color: var(--ink); text-decoration: none; font-size: 15px; font-weight: 500;
+    padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+  }
+  a.back:hover { border-color: var(--accent); }
+  a:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  h1 { font-weight: 600; font-size: clamp(1.7rem, 6vw, 2.4rem); line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; }
+  h2 { font-weight: 600; font-size: 1.35rem; margin: 30px 0 10px; }
+  .lead { color: var(--muted); margin: 0 0 20px; max-width: 62ch; }
+
+  .codebox { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .codebox label { font-weight: 500; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  input[type="text"] {
+    flex: 1 1 260px; min-width: 0;
+    background: var(--field); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 14px;
+    font: 500 14px/1.3 "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  button {
+    font: 500 15px/1 "Inter", sans-serif;
+    border-radius: 12px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--ink);
+    padding: 13px 18px; cursor: pointer;
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  button:hover { border-color: var(--accent); transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  #status { min-height: 1.4em; font-size: 14px; margin: 0; }
+  #status.err { color: var(--accent); }
+  #status.ok { color: var(--ok); }
+
+  .stage { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 25px 50px rgba(236,231,225,.06); }
+  .tabs { display: flex; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .tabs button {
+    border: 0; border-radius: 0; background: transparent; color: var(--muted);
+    padding: 14px 18px; white-space: nowrap; border-bottom: 3px solid transparent; transform: none;
+  }
+  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .canvas-wrap { position: relative; background: #000; }
+  canvas { display: block; width: 100%; height: auto; }
+  .note { position: absolute; left: 10px; bottom: 10px; background: rgba(17,17,17,.82); color: #ECE7E1; font-size: 13px; padding: 4px 9px; border-radius: 6px; }
+  .note:empty { display: none; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 16px 28px; padding: 14px 16px; border-top: 1px solid var(--line); align-items: center; }
+  .swatches { display: flex; gap: 8px; align-items: center; }
+  .swatches span { font-size: 14px; color: var(--muted); margin-right: 2px; }
+  .sw { width: 30px; height: 30px; padding: 0; border-radius: 50%; border: 2px solid var(--line); }
+  .sw[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  .zoom { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+  .zoom input { accent-color: var(--accent); width: 140px; }
+
+  .params { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .group { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .group h3 { margin: 0 0 8px; font-size: 1rem; font-weight: 600; }
+  .row2 { display: grid; grid-template-columns: 1fr 110px 46px; align-items: center; gap: 8px; font-size: 14px; margin: 6px 0; }
+  .row2 input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .row2 input[type="checkbox"] { justify-self: start; grid-column: 2; width: 20px; height: 20px; accent-color: var(--accent); }
+  .row2 output { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 13px; text-align: right; color: var(--muted); }
+  .colors { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .colors .sw { width: 28px; height: 28px; }
+  .colors input[type="color"] { width: 40px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: transparent; cursor: pointer; }
+  .colors .lbl { font-size: 13px; color: var(--muted); }
+  .foot { color: var(--muted); font-size: 13px; margin-top: 24px; max-width: 70ch; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <a href="index.html" class="logo" aria-label="Retour à ValoMainQuiz"><img src="https://cemaxoff.github.io/ValoMainQuiz/images/logo.png" alt="Logo ValoMainQuiz"></a>
+    <a href="index.html" class="back">← Retour au quiz</a>
+  </header>
+  <h1>Ton crosshair, avant de le jouer</h1>
+  <p class="lead">Colle un code de crosshair Valorant (Paramètres → Viseur → Importer) et l'aperçu s'affiche tout de suite.</p>
+
+  <div class="codebox">
+    <label for="code">Code du crosshair</label>
+    <div class="row">
+      <input id="code" type="text" spellcheck="false" autocomplete="off" autocapitalize="off"
+             value="0;s;1;P;c;8;u;000000FF;h;0;b;1;0l;3;0o;1;0a;1;0f;0;1b;0;S;c;4;s;0.6">
+      <button id="copy" type="button" class="primary">Copier</button>
+      <button id="sample" type="button">Exemple</button>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </div>
+
+  <section class="stage" aria-label="Aperçu">
+    <div class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="P" aria-selected="true">Principal</button>
+      <button role="tab" data-tab="A" aria-selected="false">Visée (ADS)</button>
+      <button role="tab" data-tab="S" aria-selected="false">Sniper</button>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="cv" width="960" height="540" aria-label="Aperçu du crosshair"></canvas>
+      <div class="note" id="note"></div>
+    </div>
+    <div class="controls">
+      <div class="swatches" id="bgs"><span>Fond</span></div>
+      <label class="zoom">Zoom
+        <input id="zoom" type="range" min="4" max="24" step="1" value="12">
+      </label>
+    </div>
+  </section>
+
+  <h2>Modifier le crosshair</h2>
+  <p class="lead" style="margin-bottom:12px">Chaque réglage met à jour le code en haut de page. Copie-le, puis colle-le dans Valorant (Paramètres, Viseur, Importer).</p>
+  <div class="params" id="editor"></div>
+
+  <p class="foot">Le code généré reprend ton code d'origine et ne change que les valeurs que tu modifies : les paramètres que la page ne reconnaît pas (b, m, s en début de code...) sont conservés tels quels. Le rendu de la section sniper est une approximation.</p>
+</main>
+
+<script>
+(function () {
+  var PRESETS = ['FFFFFF','00FF00','7FFF00','DFFF00','FFFF00','00FFFF','FF00FF','FF0000'];
+  var PRESET_NAMES = ['Blanc','Vert','Vert-jaune','Jaune-vert','Jaune','Cyan','Rose','Rouge'];
+  var SAMPLE = '0;s;1;P;c;8;u;000000FF;h;0;b;1;0l;3;0o;1;0a;1;0f;0;1b;0;S;c;4;s;0.6';
+
+  var BGS = [
+    { id: 'dark',  label: 'Sombre',  base: '#26313b', tile: '#2d3a46' },
+    { id: 'stone', label: 'Béton',   base: '#8b9096', tile: '#7f848a' },
+    { id: 'grass', label: 'Vert',    base: '#4e7f3d', tile: '#467636' },
+    { id: 'sky',   label: 'Ciel',    base: '#86b6e8', tile: '#7cadDf' },
+    { id: 'white', label: 'Blanc',   base: '#f4f4f4', tile: '#e8e8e8' },
+    { id: 'red',   label: 'Rouge',   base: '#a3323c', tile: '#972c36' }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var cv = $('cv'), ctx = cv.getContext('2d');
+  var off = document.createElement('canvas'); off.width = cv.width; off.height = cv.height;
+  var octx = off.getContext('2d');
+
+  var state = { parsed: null, tab: 'P', bg: 'dark', zoom: 12 };
+
+  function num(v, d) { var n = parseFloat(v); return isFinite(n) ? n : d; }
+  function bool(v, d) { return v === undefined ? d : v === '1'; }
+
+  function parse(raw) {
+    var tokens = raw.trim().split(';');
+    if (tokens.length < 3 || !/^\d+$/.test(tokens[0])) return null;
+    var g = {}, secs = { P: null, A: null, S: null }, cur = g, i = 1, count = 0;
+    while (i < tokens.length) {
+      var t = tokens[i];
+      if (t === 'P' || t === 'A' || t === 'S') { secs[t] = secs[t] || {}; cur = secs[t]; i += 1; continue; }
+      if (t === '') { i += 1; continue; }
+      if (tokens[i + 1] !== undefined) { cur[t] = tokens[i + 1]; count += 1; }
+      i += 2;
+    }
+    if (!secs.P || count === 0) return null;
+    return { version: tokens[0], g: g, secs: secs };
+  }
+
+  function colorOf(sec) {
+    var idx = sec.c !== undefined ? parseInt(sec.c, 10) : 1;
+    var hex = null, a = 1, name;
+    if (idx === 8 && sec.u && /^[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(sec.u)) {
+      hex = sec.u.slice(0, 6).toUpperCase();
+      if (sec.u.length === 8) a = parseInt(sec.u.slice(6, 8), 16) / 255;
+      name = 'Personnalisée';
+    } else {
+      var k = (idx >= 0 && idx <= 7) ? idx : 1;
+      hex = PRESETS[k]; name = PRESET_NAMES[k];
+    }
+    return { hex: hex, a: a, name: name };
+  }
+
+  function cfg(sec) {
+    return {
+      color: colorOf(sec),
+      outline: { on: bool(sec.h, true), op: num(sec.o, 0.5), th: num(sec.t, 1) },
+      dot: { on: bool(sec.d, false), size: num(sec.z, 2), op: num(sec.a, 1) },
+      inner: { on: bool(sec['0b'], true), len: num(sec['0l'], 6), off: num(sec['0o'], 3), op: num(sec['0a'], 0.8), th: num(sec['0t'], 2) },
+      outer: { on: bool(sec['1b'], true), len: num(sec['1l'], 2), off: num(sec['1o'], 10), op: num(sec['1a'], 0.35), th: num(sec['1t'], 2) },
+      sniper: { dotOp: num(sec.s, 1) }
+    };
+  }
+
+  function drawBackground() {
+    var bg = BGS.filter(function (b) { return b.id === state.bg; })[0];
+    var w = cv.width, h = cv.height, s = 60;
+    ctx.fillStyle = bg.base; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = bg.tile;
+    for (var y = 0; y < h; y += s) for (var x = 0; x < w; x += s) {
+      if (((x / s) + (y / s)) % 2 === 0) ctx.fillRect(x, y, s, s);
+    }
+  }
+
+  function shapesFor(c) {
+    var list = [], col = c.color;
+    function lines(l) {
+      if (!l.on || l.len <= 0 || l.th <= 0) return;
+      var a = col.a * Math.min(1, Math.max(0, l.op)), t = l.th, o = l.off, n = l.len;
+      list.push({ x: o, y: -t / 2, w: n, h: t, a: a });
+      list.push({ x: -o - n, y: -t / 2, w: n, h: t, a: a });
+      list.push({ x: -t / 2, y: -o - n, w: t, h: n, a: a });
+      list.push({ x: -t / 2, y: o, w: t, h: n, a: a });
+    }
+    lines(c.inner); lines(c.outer);
+    if (c.dot.on && c.dot.size > 0) {
+      var z = c.dot.size;
+      list.push({ x: -z / 2, y: -z / 2, w: z, h: z, a: col.a * Math.min(1, Math.max(0, c.dot.op)) });
+    }
+    return list;
+  }
+
+  function drawCrosshair(c) {
+    var z = state.zoom, cx = cv.width / 2, cy = cv.height / 2;
+    var shapes = shapesFor(c);
+    if (c.outline.on && c.outline.th > 0) {
+      octx.clearRect(0, 0, off.width, off.height);
+      octx.fillStyle = '#000';
+      var t = c.outline.th;
+      shapes.forEach(function (s) {
+        octx.fillRect(cx + (s.x - t) * z, cy + (s.y - t) * z, (s.w + 2 * t) * z, (s.h + 2 * t) * z);
+      });
+      ctx.save(); ctx.globalAlpha = Math.min(1, Math.max(0, c.outline.op));
+      ctx.drawImage(off, 0, 0); ctx.restore();
+    }
+    ctx.fillStyle = '#' + c.color.hex;
+    shapes.forEach(function (s) {
+      ctx.globalAlpha = s.a;
+      ctx.fillRect(cx + s.x * z, cy + s.y * z, s.w * z, s.h * z);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawSniper(c) {
+    var w = cv.width, h = cv.height, cx = w / 2, cy = h / 2, z = state.zoom;
+    ctx.save();
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h);
+    ctx.arc(cx, cy, h * 0.47, 0, Math.PI * 2, true);
+    ctx.fill('evenodd');
+    ctx.restore();
+    ctx.fillStyle = 'rgba(0,0,0,.9)';
+    ctx.fillRect(cx - h * 0.47, cy - 1, h * 0.94, 2);
+    ctx.fillRect(cx - 1, cy - h * 0.47, 2, h * 0.94);
+    var size = Math.max(3, z * 0.5);
+    ctx.globalAlpha = c.color.a * Math.min(1, Math.max(0, c.sniper.dotOp));
+    ctx.fillStyle = '#' + c.color.hex;
+    ctx.fillRect(cx - size / 2, cy - size / 2, size, size);
+    ctx.globalAlpha = 1;
+  }
+
+  var syncs = [];
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  function fmtNum(v) { return String(Math.round(v * 1000) / 1000); }
+  function hex2(a) { var h = Math.round(Math.min(1, Math.max(0, a)) * 255).toString(16).toUpperCase(); return h.length < 2 ? '0' + h : h; }
+
+  function viewSec() { var p = state.parsed, t = state.tab; return p.secs[t] || (t === 'A' ? p.secs.P : {}); }
+  function editSec() {
+    var p = state.parsed, t = state.tab;
+    if (!p.secs[t]) {
+      if (t === 'A') { var cp = {}; Object.keys(p.secs.P).forEach(function (k) { cp[k] = p.secs.P[k]; }); p.secs.A = cp; }
+      else p.secs[t] = {};
+    }
+    return p.secs[t];
+  }
+  function serialize(p) {
+    var parts = [p.version];
+    Object.keys(p.g).forEach(function (k) { parts.push(k, p.g[k]); });
+    ['P', 'A', 'S'].forEach(function (L) {
+      if (p.secs[L]) { parts.push(L); Object.keys(p.secs[L]).forEach(function (k) { parts.push(k, p.secs[L][k]); }); }
+    });
+    return parts.join(';');
+  }
+  function commit() {
+    $('code').value = serialize(state.parsed);
+    setStatus('Code mis à jour, prêt à copier.', 'ok');
+    render();
+  }
+  function syncAll() { syncs.forEach(function (f) { f(); }); }
+
+  function mkGroup(title) { var g = el('div', 'group'); g.appendChild(el('h3', null, title)); $('editor').appendChild(g); return g; }
+
+  function addBool(g, label, key, def) {
+    var r = el('label', 'row2'), i = document.createElement('input');
+    i.type = 'checkbox';
+    r.appendChild(el('span', null, label)); r.appendChild(i); g.appendChild(r);
+    function sync() { i.checked = bool(viewSec()[key], def); }
+    i.addEventListener('change', function () { editSec()[key] = i.checked ? '1' : '0'; commit(); });
+    syncs.push(sync); sync();
+  }
+
+  function addNum(g, label, key, min, max, step, def, isPct) {
+    var r = el('label', 'row2'), i = document.createElement('input'), out = el('output');
+    i.type = 'range'; i.min = min; i.max = max; i.step = step;
+    r.appendChild(el('span', null, label)); r.appendChild(i); r.appendChild(out); g.appendChild(r);
+    function show(v) { out.textContent = isPct ? Math.round(v * 100) + ' %' : String(v); }
+    function sync() { var v = num(viewSec()[key], def); i.value = v; show(v); }
+    i.addEventListener('input', function () { var v = parseFloat(i.value); editSec()[key] = fmtNum(v); show(v); commit(); });
+    syncs.push(sync); sync();
+  }
+
+  function addColor(g) {
+    var wrap = el('div', 'colors'), btns = [];
+    PRESETS.forEach(function (hex, idx) {
+      var b = el('button', 'sw'); b.type = 'button'; b.title = PRESET_NAMES[idx];
+      b.setAttribute('aria-label', 'Couleur ' + PRESET_NAMES[idx]);
+      b.style.background = '#' + hex;
+      b.addEventListener('click', function () { var s = editSec(); s.c = String(idx); delete s.u; commit(); syncAll(); });
+      wrap.appendChild(b); btns.push(b);
+    });
+    var pick = document.createElement('input'); pick.type = 'color'; pick.setAttribute('aria-label', 'Couleur personnalisée');
+    wrap.appendChild(el('span', 'lbl', 'ou')); wrap.appendChild(pick); g.appendChild(wrap);
+
+    var r = el('label', 'row2'), al = document.createElement('input'), out = el('output');
+    al.type = 'range'; al.min = 0; al.max = 1; al.step = 0.01;
+    r.appendChild(el('span', null, 'Opacité de la couleur')); r.appendChild(al); r.appendChild(out); g.appendChild(r);
+
+    function setCustom(hex, a) { var s = editSec(); s.c = '8'; s.u = hex + hex2(a); commit(); syncAll(); }
+    pick.addEventListener('input', function () { setCustom(pick.value.slice(1).toUpperCase(), colorOf(editSec()).a); });
+    al.addEventListener('input', function () { setCustom(colorOf(editSec()).hex, parseFloat(al.value)); });
+
+    function sync() {
+      var c = colorOf(viewSec()), pi = PRESETS.indexOf(c.hex), custom = c.name === 'Personnalisée';
+      btns.forEach(function (b, idx) { b.setAttribute('aria-pressed', (!custom && idx === pi) ? 'true' : 'false'); });
+      pick.value = '#' + c.hex.toLowerCase();
+      al.value = c.a; out.textContent = Math.round(c.a * 100) + ' %';
+    }
+    syncs.push(sync); sync();
+  }
+
+  function buildEditor() {
+    $('editor').innerHTML = ''; syncs = [];
+    var g;
+    if (state.tab === 'S') {
+      g = mkGroup('Point sniper');
+      addColor(g);
+      addNum(g, 'Opacité du point', 's', 0, 1, 0.01, 1, true);
+      return;
+    }
+    g = mkGroup('Couleur'); addColor(g);
+    g = mkGroup('Contours');
+    addBool(g, 'Actifs', 'h', true);
+    addNum(g, 'Opacité', 'o', 0, 1, 0.01, 0.5, true);
+    addNum(g, 'Épaisseur', 't', 1, 6, 1, 1);
+    g = mkGroup('Point central');
+    addBool(g, 'Actif', 'd', false);
+    addNum(g, 'Taille', 'z', 1, 6, 1, 2);
+    addNum(g, 'Opacité', 'a', 0, 1, 0.01, 1, true);
+    g = mkGroup('Lignes intérieures');
+    addBool(g, 'Actives', '0b', true);
+    addNum(g, 'Longueur', '0l', 0, 20, 1, 6);
+    addNum(g, 'Écart au centre', '0o', 0, 20, 1, 3);
+    addNum(g, 'Épaisseur', '0t', 0, 10, 1, 2);
+    addNum(g, 'Opacité', '0a', 0, 1, 0.01, 0.8, true);
+    g = mkGroup('Lignes extérieures');
+    addBool(g, 'Actives', '1b', true);
+    addNum(g, 'Longueur', '1l', 0, 20, 1, 2);
+    addNum(g, 'Écart au centre', '1o', 0, 40, 1, 10);
+    addNum(g, 'Épaisseur', '1t', 0, 10, 1, 2);
+    addNum(g, 'Opacité', '1a', 0, 1, 0.01, 0.35, true);
+  }
+
+  function render() {
+    var p = state.parsed;
+    if (!p) return;
+    var tab = state.tab, sec = p.secs[tab], note = '';
+    if (!sec) {
+      if (tab === 'A') { sec = p.secs.P; note = 'Pas de section ADS : identique au principal'; }
+      else { sec = {}; note = 'Pas de section sniper : valeurs par défaut'; }
+    }
+    var c = cfg(sec);
+    drawBackground();
+    if (tab === 'S') drawSniper(c); else drawCrosshair(c);
+    $('note').textContent = note;
+  }
+
+  function setStatus(msg, kind) {
+    var el = $('status'); el.textContent = msg; el.className = kind || '';
+  }
+
+  function update() {
+    var raw = $('code').value;
+    if (!raw.trim()) { setStatus('Colle un code pour voir le crosshair.', ''); return; }
+    var p = parse(raw);
+    if (!p) { setStatus('Code invalide : il doit ressembler à 0;P;c;1;…', 'err'); return; }
+    state.parsed = p;
+    setStatus('Code valide.', 'ok');
+    buildEditor();
+    render();
+  }
+
+  $('code').addEventListener('input', update);
+  $('sample').addEventListener('click', function () { $('code').value = SAMPLE; update(); });
+  $('copy').addEventListener('click', function () {
+    var inp = $('code'), txt = inp.value;
+    function fallback() {
+      inp.focus(); inp.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      setStatus(ok ? 'Code copié.' : 'Code sélectionné : fais Copier depuis ton clavier ou le menu.', ok ? 'ok' : '');
+    }
+    try { navigator.clipboard.writeText(txt).then(function () { setStatus('Code copié.', 'ok'); }, fallback); }
+    catch (e) { fallback(); }
+  });
+
+  $('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-tab]'); if (!b) return;
+    state.tab = b.getAttribute('data-tab');
+    Array.prototype.forEach.call($('tabs').children, function (x) {
+      x.setAttribute('aria-selected', x === b ? 'true' : 'false');
+    });
+    buildEditor();
+    render();
+  });
+
+  var bgBox = $('bgs');
+  BGS.forEach(function (b) {
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'sw'; btn.title = b.label; btn.setAttribute('aria-label', 'Fond ' + b.label);
+    btn.style.background = b.base;
+    btn.setAttribute('aria-pressed', b.id === state.bg ? 'true' : 'false');
+    btn.addEventListener('click', function () {
+      state.bg = b.id;
+      Array.prototype.forEach.call(bgBox.querySelectorAll('.sw'), function (x) { x.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      render();
+    });
+    bgBox.appendChild(btn);
+  });
+
+  $('zoom').addEventListener('input', function (e) { state.zoom = parseInt(e.target.value, 10); render(); });
+
+  update();
+})();
+</script>
+</body>
+</html>
